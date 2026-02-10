@@ -1,6 +1,8 @@
 package com.flashpay.backend.controllers;
 
 import com.flashpay.backend.domain.User;
+import com.flashpay.backend.dto.CreateUserRequestDTO;
+import com.flashpay.backend.dto.CreateUserResponseDTO;
 import com.flashpay.backend.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -24,8 +26,8 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody User user){
-        User newUser = userService.createUser(user);
+    public ResponseEntity<CreateUserResponseDTO> createUser(@RequestBody CreateUserRequestDTO user){
+        CreateUserResponseDTO newUser = userService.createUser(user);
         return  new ResponseEntity<>(newUser, HttpStatus.CREATED);
     }
 }
