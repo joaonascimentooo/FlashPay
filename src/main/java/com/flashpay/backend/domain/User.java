@@ -19,11 +19,13 @@ public class User {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    private String name;
+    @Column(name = "first_name")
+    private String firstName;
 
+    @Column(name = "last_name")
     private String lastName;
 
-    @Column(unique = true)
+    @Column(name = "user_document",unique = true)
     private String userDocument;
 
     @Column(unique = true)
