@@ -19,19 +19,15 @@ import java.io.IOException;
 @RequiredArgsConstructor
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-
    
     private final JwtTokenProvider jwtTokenProvider;
 
     private final UserDetailsService userDetailsService;
-
    
     private static final String BEARER_PREFIX = "Bearer ";
-
    
     private static final String HEADER_AUTHORIZATION = "Authorization";
 
-   
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
@@ -63,7 +59,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-   
     private String extractTokenFromRequest(HttpServletRequest request) {
         String bearerToken = request.getHeader(HEADER_AUTHORIZATION);
 
