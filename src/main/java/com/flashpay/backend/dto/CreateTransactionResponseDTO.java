@@ -15,6 +15,8 @@ import java.time.LocalDateTime;
 public class CreateTransactionResponseDTO {
 
     private String id;
+    private String senderId;
+    private String receiverId;
     private BigDecimal value;
     private LocalDateTime timestamp;
 }

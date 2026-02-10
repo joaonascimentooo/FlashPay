@@ -7,12 +7,14 @@ import com.flashpay.backend.dto.CreateTransactionResponseDTO;
 import com.flashpay.backend.repository.TransactionRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TransactionService {
 
     private final TransactionRepository transactionRepository;
@@ -20,11 +22,18 @@ public class TransactionService {
     private final UserService userService;
 
     @Transactional
-    public CreateTransactionResponseDTO createTransaction(CreateTransactionRequestDTO data) throws Exception{
+    public CreateTransactionResponseDTO createTransaction(CreateTransactionRequestDTO data) {
+        log.info("Processing transaction from {} to {}", data.getSenderId(), data.getReceiverId());
+
         User sender = this.userService.findUserById(data.getSenderId());
         User receiver = this.userService.findUserById(data.getReceiverId());
 
-        this.userService.validateTransaction(sender,data.getValue());
+        if (sender.getId().equals(receiver.getId())) {
+            log.warn("Attempted transfer to same user: {}", sender.getId());
+            throw new IllegalArgumentException("Não é permitido transferir para você mesmo");
+        }
+
+        this.userService.validateTransaction(sender, data.getValue());
 
         sender.setBalance(sender.getBalance().subtract(data.getValue()));
         receiver.setBalance(receiver.getBalance().add(data.getValue()));
@@ -37,12 +46,16 @@ public class TransactionService {
 
         this.userService.saveUser(sender);
         this.userService.saveUser(receiver);
-        this.transactionRepository.save(newTransaction);
+        Transaction savedTransaction = this.transactionRepository.save(newTransaction);
+
+        log.info("Transaction completed: {} - Amount: {}", savedTransaction.getId(), data.getValue());
 
         return new CreateTransactionResponseDTO(
-                newTransaction.getId(),
-                newTransaction.getAmount(),
-                newTransaction.getTimestamp()
+                savedTransaction.getId(),
+                savedTransaction.getSender().getId(),
+                savedTransaction.getReceiver().getId(),
+                savedTransaction.getAmount(),
+                savedTransaction.getTimestamp()
         );
     }
 }
