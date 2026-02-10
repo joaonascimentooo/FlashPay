@@ -15,20 +15,16 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.stream.Collectors;
 
-
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class JwtTokenProvider {
-
     
     @Value("${jwt.secret:mySecretKeyThatShouldBeAtLeast256BitsLongForHS256Algorithm}")
     private String jwtSecret;
-
     
     @Value("${jwt.expiration:86400000}")
     private long jwtExpirationMs;
-
     
     public String generateToken(UserDetails userDetails) {
         Date now = new Date();
@@ -54,7 +50,6 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-
     public String getEmailFromToken(String token) {
         try {
             Claims claims = getAllClaimsFromToken(token);
@@ -75,7 +70,6 @@ public class JwtTokenProvider {
                 .parseSignedClaims(token)
                 .getPayload();
     }
-
    
     private Boolean isTokenExpired(String token) {
         try {
