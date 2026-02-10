@@ -5,12 +5,10 @@ import com.flashpay.backend.domain.User;
 import com.flashpay.backend.dto.CreateTransactionRequestDTO;
 import com.flashpay.backend.dto.CreateTransactionResponseDTO;
 import com.flashpay.backend.repository.TransactionRepository;
-import com.flashpay.backend.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Service
