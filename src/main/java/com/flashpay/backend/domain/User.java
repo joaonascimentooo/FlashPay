@@ -15,7 +15,8 @@ import java.math.BigDecimal;
 @EqualsAndHashCode( of = "id")
 public class User {
 
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     private String name;
@@ -23,7 +24,7 @@ public class User {
     private String lastName;
 
     @Column(unique = true)
-    private String document;
+    private String userDocument;
 
     @Column(unique = true)
     private String email;

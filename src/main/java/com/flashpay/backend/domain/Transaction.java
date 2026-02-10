@@ -15,7 +15,8 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(of = "id")
 public class Transaction {
 
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     private BigDecimal amount;
