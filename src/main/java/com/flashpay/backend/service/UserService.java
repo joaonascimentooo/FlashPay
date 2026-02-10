@@ -1,6 +1,8 @@
 package com.flashpay.backend.service;
 
 import com.flashpay.backend.domain.User;
+import com.flashpay.backend.dto.CreateUserRequestDTO;
+import com.flashpay.backend.dto.CreateUserResponseDTO;
 import com.flashpay.backend.enums.UserType;
 import com.flashpay.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,8 +33,19 @@ public class UserService {
         this.userRepository.save(user);
     }
 
-    public User createUser(User user){
-        return this.userRepository.save(user);
+    public CreateUserResponseDTO createUser(CreateUserRequestDTO data){
+        User newUser = new User();
+        newUser.setFirstName(data.getFirstName());
+        newUser.setLastName(data.getLastName());
+        newUser.setUserDocument(data.getUserDocument());
+        newUser.setEmail(data.getEmail());
+        newUser.setPassword(data.getPassword());
+        newUser.setUserType(data.getUserType());
+        newUser.setBalance(data.getBalance());
+
+        User savedUser = this.userRepository.save(newUser);
+
+        return new CreateUserResponseDTO(savedUser.getId(), savedUser.getFirstName(), savedUser.getLastName(), savedUser.getEmail(), savedUser.getUserType());
     }
 
     public List<User> getAllUsers() {
