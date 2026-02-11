@@ -178,17 +178,28 @@ public class AuthService {
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
         String newAccessToken = jwtTokenProvider.generateToken(userDetails);
 
-        log.info("Token renovado com sucesso para usuário: {}", user.getEmail());
+        
+        storedToken.setRevoked(true);
+        refreshTokenRepository.save(storedToken);
+        log.debug("Refresh token antigo revogado para usuário: {}", user.getEmail());
+
+        String newRefreshToken = jwtTokenProvider.generateRefreshToken(userDetails);
+        saveRefreshToken(user, newRefreshToken);
+        log.debug("Novo refresh token gerado para usuário: {}", user.getEmail());
+
+        log.info("Token renovado com sucesso para usuário: {} (Rotation realizado)", user.getEmail());
 
         return AuthResponseDTO.builder()
                 .token(newAccessToken)
                 .tokenType("Bearer")
+                .refreshToken(newRefreshToken)
                 .userId(user.getId())
                 .email(user.getEmail())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .userType(user.getUserType().name())
                 .expiresIn(jwtTokenProvider.getExpirationTimeInSeconds())
+                .refreshExpiresIn(jwtTokenProvider.getRefreshTokenExpirationTimeInSeconds())
                 .build();
     }
 
