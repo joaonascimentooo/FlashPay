@@ -22,8 +22,14 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Stri
     @Query("DELETE FROM refresh_tokens rt WHERE rt.expiryDate < ?1")
     int deleteExpiredTokens(LocalDateTime expiryDate);
 
+    @Query("DELETE FROM refresh_tokens rt WHERE rt.expiryDate < CURRENT_TIMESTAMP")
+    int deleteExpiredTokens();
+
     @Query("DELETE FROM refresh_tokens rt WHERE rt.user = ?1 AND rt.revoked = true")
     int deleteRevokedTokensByUser(User user);
+
+    @Query("DELETE FROM refresh_tokens rt WHERE rt.revoked = true")
+    int deleteRevokedTokens();
 
     @Query("SELECT COUNT(rt) FROM refresh_tokens rt WHERE rt.user = ?1 AND rt.revoked = false AND rt.expiryDate > CURRENT_TIMESTAMP")
     long countValidTokensByUser(User user);
