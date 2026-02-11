@@ -2,6 +2,7 @@ package com.flashpay.backend.controllers;
 
 import com.flashpay.backend.dto.AuthResponseDTO;
 import com.flashpay.backend.dto.LoginRequestDTO;
+import com.flashpay.backend.dto.RefreshTokenRequestDTO;
 import com.flashpay.backend.dto.RegisterRequestDTO;
 import com.flashpay.backend.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
-
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -62,5 +62,36 @@ public class AuthController {
             throw e; 
         }
     }
-    
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponseDTO> refresh(
+            @Valid @RequestBody RefreshTokenRequestDTO refreshRequest) {
+        log.info("Requisição de renovação de token");
+        
+        try {
+            AuthResponseDTO response = authService.refreshAccessToken(refreshRequest);
+            log.info("Token renovado com sucesso");
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Erro ao renovar token: {}", e.getMessage());
+            throw e;
+        }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(
+            @Valid @RequestBody RefreshTokenRequestDTO refreshRequest) {
+        log.info("Requisição de logout");
+        
+        try {
+            authService.logout(refreshRequest.getRefreshToken());
+            log.info("Logout realizado com sucesso");
+            
+            return ResponseEntity.ok("Logout realizado com sucesso");
+        } catch (Exception e) {
+            log.error("Erro ao fazer logout: {}", e.getMessage());
+            throw e;
+        }
+    }
 }
