@@ -10,9 +10,11 @@ import com.flashpay.backend.exceptions.UserNotFoundException;
 import com.flashpay.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+
+import org.springframework.stereotype.Service;
+
 
 @Service
 @RequiredArgsConstructor

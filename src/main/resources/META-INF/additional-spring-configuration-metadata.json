@@ -1,0 +1,22 @@
+{
+  "properties": [
+    {
+      "name": "jwt.secret",
+      "type": "java.lang.String",
+      "description": "Chave secreta para assinar tokens JWT. Deve ter no mínimo 256 bits.",
+      "defaultValue": "mySecretKeyThatShouldBeAtLeast256BitsLongForHS256Algorithm"
+    },
+    {
+      "name": "jwt.expiration",
+      "type": "java.lang.Long",
+      "description": "Tempo de expiração do token JWT em milissegundos. Padrão: 86400000 (24 horas)",
+      "defaultValue": "86400000"
+    },
+    {
+      "name": "jwt.refresh-expiration",
+      "type": "java.lang.Long",
+      "description": "Tempo de expiração do refresh token em milissegundos. Padrão: 604800000 (7 dias)",
+      "defaultValue": "604800000"
+    }
+  ]
+}

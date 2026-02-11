@@ -1,0 +1,25 @@
+package com.flashpay.backend.dto;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@JsonInclude(JsonInclude.Include.ALWAYS)
+public class AuthResponseDTO {
+    private String token;
+    private String tokenType;
+    private String userId;
+    private String email;
+    private String firstName;
+    private String lastName;
+    private String userType;
+    private Long expiresIn;
+    private String refreshToken;
+    private Long refreshExpiresIn;
+}
