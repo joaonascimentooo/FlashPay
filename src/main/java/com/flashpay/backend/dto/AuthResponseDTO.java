@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class AuthResponseDTO {
-    
     private String token;
     private String tokenType;
     private String userId;
@@ -18,6 +17,7 @@ public class AuthResponseDTO {
     private String firstName;
     private String lastName;
     private String userType;
-    
     private Long expiresIn;
+    private String refreshToken;
+    private Long refreshExpiresIn;
 }

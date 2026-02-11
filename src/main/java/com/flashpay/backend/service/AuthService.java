@@ -1,12 +1,15 @@
 package com.flashpay.backend.service;
 
+import com.flashpay.backend.domain.RefreshToken;
 import com.flashpay.backend.domain.User;
 import com.flashpay.backend.dto.AuthResponseDTO;
 import com.flashpay.backend.dto.LoginRequestDTO;
+import com.flashpay.backend.dto.RefreshTokenRequestDTO;
 import com.flashpay.backend.dto.RegisterRequestDTO;
 import com.flashpay.backend.enums.UserType;
 import com.flashpay.backend.exceptions.DuplicateResourceException;
 import com.flashpay.backend.exceptions.UserNotFoundException;
+import com.flashpay.backend.repository.RefreshTokenRepository;
 import com.flashpay.backend.repository.UserRepository;
 import com.flashpay.backend.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +23,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +32,8 @@ import java.math.BigDecimal;
 public class AuthService {
 
     private final UserRepository userRepository;
+
+    private final RefreshTokenRepository refreshTokenRepository;
   
     private final AuthenticationManager authenticationManager;
 
@@ -68,20 +73,24 @@ public class AuthService {
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(savedUser.getEmail());
         String token = jwtTokenProvider.generateToken(userDetails);
+        String refreshToken = jwtTokenProvider.generateRefreshToken(userDetails);
+        
+        saveRefreshToken(savedUser, refreshToken);
 
         return AuthResponseDTO.builder()
                 .token(token)
                 .tokenType("Bearer")
+                .refreshToken(refreshToken)
                 .userId(savedUser.getId())
                 .email(savedUser.getEmail())
                 .firstName(savedUser.getFirstName())
                 .lastName(savedUser.getLastName())
                 .userType(savedUser.getUserType().name())
                 .expiresIn(jwtTokenProvider.getExpirationTimeInSeconds())
+                .refreshExpiresIn(jwtTokenProvider.getRefreshTokenExpirationTimeInSeconds())
                 .build();
     }
 
-    
     public AuthResponseDTO login(LoginRequestDTO loginRequest) {
         log.info("Tentativa de login: {}", loginRequest.getEmail());
 
@@ -100,18 +109,23 @@ public class AuthService {
 
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             String token = jwtTokenProvider.generateToken(userDetails);
+            String refreshToken = jwtTokenProvider.generateRefreshToken(userDetails);
+            
+            saveRefreshToken(user, refreshToken);
 
             log.info("Login bem-sucedido: {}", loginRequest.getEmail());
 
             return AuthResponseDTO.builder()
                     .token(token)
                     .tokenType("Bearer")
+                    .refreshToken(refreshToken)
                     .userId(user.getId())
                     .email(user.getEmail())
                     .firstName(user.getFirstName())
                     .lastName(user.getLastName())
                     .userType(user.getUserType().name())
                     .expiresIn(jwtTokenProvider.getExpirationTimeInSeconds())
+                    .refreshExpiresIn(jwtTokenProvider.getRefreshTokenExpirationTimeInSeconds())
                     .build();
 
         } catch (BadCredentialsException e) {
@@ -139,5 +153,66 @@ public class AuthService {
                 .userType(user.getUserType().name())
                 .expiresIn(jwtTokenProvider.getExpirationTimeInSeconds())
                 .build();
+    }
+
+    public AuthResponseDTO refreshAccessToken(RefreshTokenRequestDTO refreshRequest) {
+        log.info("Tentativa de renovação de token");
+
+        if (!jwtTokenProvider.isRefreshTokenValid(refreshRequest.getRefreshToken())) {
+            log.warn("Refresh token inválido ou expirado");
+            throw new UserNotFoundException("Refresh token inválido ou expirado");
+        }
+
+        RefreshToken storedToken = refreshTokenRepository.findByToken(refreshRequest.getRefreshToken())
+                .orElseThrow(() -> {
+                    log.warn("Refresh token não encontrado no banco");
+                    return new UserNotFoundException("Refresh token não encontrado");
+                });
+
+        if (storedToken.isExpired() || storedToken.getRevoked()) {
+            log.warn("Refresh token foi revogado ou expirou");
+            throw new UserNotFoundException("Refresh token inválido ou revogado");
+        }
+
+        User user = storedToken.getUser();
+        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
+        String newAccessToken = jwtTokenProvider.generateToken(userDetails);
+
+        log.info("Token renovado com sucesso para usuário: {}", user.getEmail());
+
+        return AuthResponseDTO.builder()
+                .token(newAccessToken)
+                .tokenType("Bearer")
+                .userId(user.getId())
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .userType(user.getUserType().name())
+                .expiresIn(jwtTokenProvider.getExpirationTimeInSeconds())
+                .build();
+    }
+
+    public void logout(String refreshToken) {
+        try {
+            RefreshToken token = refreshTokenRepository.findByToken(refreshToken)
+                    .orElseThrow(() -> new UserNotFoundException("Refresh token não encontrado"));
+            token.setRevoked(true);
+            refreshTokenRepository.save(token);
+            
+            log.info("Logout realizado com sucesso");
+        } catch (Exception e) {
+            log.warn("Erro ao fazer logout: {}", e.getMessage());
+        }
+    }
+
+    private void saveRefreshToken(User user, String token) {
+        RefreshToken refreshToken = new RefreshToken();
+        refreshToken.setUser(user);
+        refreshToken.setToken(token);
+        refreshToken.setExpiryDate(LocalDateTime.now().plusDays(7)); // 7 dias
+        refreshToken.setRevoked(false);
+        
+        refreshTokenRepository.save(refreshToken);
+        log.debug("Refresh token salvo para usuário: {}", user.getEmail());
     }
 }
